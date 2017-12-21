@@ -1,0 +1,20 @@
+
+
+Run list_files.sh <PATH>
+
+This creates a /tmp/policy.<PID>/list.all-files
+
+You feed that path to file_analysis.pl like such:
+
+file_analysis.pl /tmp/policy.32594/list.all-files 
+
+You can specify what type of analysis:
+     Flag    Analysis Type
+     -s      Breakdown by File Size
+     -c      Breakdown by File Creation Days
+     -m      Breakdown by File Modification Days
+     -a      Breakdown by File Access Days
+     -u      Breakdown by UID
+     -g      Breakdown by GID
+
+
