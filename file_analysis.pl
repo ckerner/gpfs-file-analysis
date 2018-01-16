@@ -4,7 +4,7 @@ use Data::Dumper;
 
 if( scalar(@ARGV) != 2 ) {
     print "\n";
-    print "  Usage: file_analysis.pl  <FILE> <Analysis Type>\n";
+    print "  Usage: file_analysis.pl <Analysis Type> <Path To Analyze>\n";
     print "\n";
     print "     Flag    Analysis Type\n";
     print "     -s      Breakdown by File Size\n";
@@ -17,9 +17,13 @@ if( scalar(@ARGV) != 2 ) {
     exit 1;
 }
 else {
-   $file = $ARGV[0];
-   $type = $ARGV[1];
+   $type = $ARGV[0];
+   $analysis_path = $ARGV[1];
 }
+
+$PID=$$;;
+$work_dir = "/tmp/policy.$PID";
+$data_file = "$work_dir/list.all-files";
 
 $onek = 1024;
 $onem = 1024 ** 2;
@@ -61,7 +65,7 @@ sub addcomma {
 }
 
 sub print_by_gid {
-    open(INFIL,"$file") || die("Unable to open file: $file $!\n");
+    open(INFIL,"$data_file") || die("Unable to open file: $data_file $!\n");
     RECORD: while(<INFIL>) {
        chomp;
        @ara=split(/\s+/,$_);
@@ -73,7 +77,7 @@ sub print_by_gid {
 }
 
 sub print_by_uid {
-    open(INFIL,"$file") || die("Unable to open file: $file $!\n");
+    open(INFIL,"$data_file") || die("Unable to open file: $data_file $!\n");
     RECORD: while(<INFIL>) {
        chomp;
        @ara=split(/\s+/,$_);
@@ -136,7 +140,7 @@ sub print_buckets {
     if( $type eq '-s' ) { init_size_buckets(); }
     else                { init_date_buckets(); }
 
-    open(INFIL,"$file") || die("Unable to open file: $file $!\n");
+    open(INFIL,"$data_file") || die("Unable to open file: $data_file $!\n");
     RECORD: while(<INFIL>) {
        chomp;
        @ara=split(/\s+/,$_);
@@ -179,10 +183,39 @@ sub print_buckets {
     }
 }
 
+sub setup_work_area() {
+    `mkdir $work_dir &>/dev/null`;
+    $policy_file = "$work_dir/policy.in";
+    $log_file = "$work_dir/policy.out";
+
+    open(POLFILE, ">$policy_file");
+    print POLFILE <<"EOPOLICY";
+
+RULE 'listall' list 'all-files'
+   SHOW( varchar(kb_allocated) || ' ' ||
+         varchar(file_size) || ' ' ||
+         varchar( days(current_timestamp) - days(creation_time) ) || ' ' ||
+         varchar( days(current_timestamp) - days(change_time) ) || ' ' ||
+         varchar( days(current_timestamp) - days(modification_time) ) || ' ' ||
+         varchar( days(current_timestamp) - days(access_time) ) || ' ' ||
+         varchar(group_id) || ' ' ||
+         varchar(user_id) )
+   WHERE PATH_NAME like '$analysis_path/%'
+EOPOLICY
+    close(POLFILE);
+
+    return;
+}
 
 # Main Code Block
 {
+   setup_work_area();
+
+   `/usr/lpp/mmfs/bin/mmapplypolicy $analysis_path -f $work_dir -P $policy_file -I defer &>$log_file 2>&1`;
+
    if( $type eq '-u' )    { print_by_uid(); }
    elsif( $type eq '-g' ) { print_by_gid(); }
    else                   { print_buckets( $type ); }
+
+   #   `rm -Rf $work_dir &>/dev/null`;
 }
