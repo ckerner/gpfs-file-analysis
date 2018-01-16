@@ -1,12 +1,7 @@
 
+This utility will perform some basic file analysis on a given tree of a GPFS file system.
 
-Run list_files.sh <PATH>
-
-This creates a /tmp/policy.<PID>/list.all-files
-
-You feed that path to file_analysis.pl like such:
-
-file_analysis.pl /tmp/policy.32594/list.all-files 
+Usage: file_analysis.pl <Analysis Type> <Path To Analyze>
 
 You can specify what type of analysis:
      Flag    Analysis Type
@@ -17,4 +12,46 @@ You can specify what type of analysis:
      -u      Breakdown by UID
      -g      Breakdown by GID
 
+
+file_analysis.pl -s /data/source
+
+# ./file_analysis.pl -s /data2/source
+         Breakdown by File Size
+
+      Bucket Size 	# of Files 	          # of Bytes 
+            Inode 	    10,366 	           6,711,329 
+              <4K 	        31 	             124,906 
+         4K - 64K 	     2,675 	          55,544,426 
+       64K - 128K 	       742 	          73,496,075 
+      128K - 256K 	       568 	         105,991,888 
+      256K - 512K 	       375 	         141,060,282 
+        512K - 1M 	       318 	         218,946,491 
+          1M - 2M 	       166 	         257,881,117 
+          2M - 4M 	       100 	         294,109,617 
+          4M - 8M 	        81 	         429,730,175 
+         8M - 16M 	       109 	       1,449,325,185 
+       16M - 100M 	        79 	       2,914,112,150 
+      100M - 256M 	        16 	       2,102,904,299 
+      256M - 512M 	         1 	         316,053,776 
+        512M - 1G 	         6 	       5,775,986,177 
+          1G - 5G 	         1 	       2,313,115,662 
+              >5G 	         1 	       6,183,388,237 
+
+# ./file_analysis.pl -a /data2/source
+         Breakdown by File Access Date
+
+      Bucket Days 	# of Files 	          # of Bytes 
+            Today 	    10,370 	           6,760,253 
+       1 - 7 Days 	         0 	                   0 
+      7 - 30 Days 	         1 	               7,042 
+     30 - 60 Days 	     5,264 	      22,631,714,497 
+     60 - 90 Days 	         0 	                   0 
+     90 -120 Days 	         0 	                   0 
+   120 - 180 Days 	         0 	                   0 
+180 Days - 1 Year 	         0 	                   0 
+      1 - 2 Years 	         0 	                   0 
+      2 - 3 Years 	         0 	                   0 
+      3 - 4 Years 	         0 	                   0 
+      4 - 5 Years 	         0 	                   0 
+         5+ Years 	         0 	                   0 
 

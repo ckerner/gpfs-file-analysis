@@ -217,5 +217,5 @@ EOPOLICY
    elsif( $type eq '-g' ) { print_by_gid(); }
    else                   { print_buckets( $type ); }
 
-   #   `rm -Rf $work_dir &>/dev/null`;
+   `rm -Rf $work_dir &>/dev/null`;
 }
