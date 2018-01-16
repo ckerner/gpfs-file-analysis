@@ -1,5 +1,14 @@
 #!/usr/bin/env perl
-
+#===============================================================================
+# Program: file_analysis.pl
+#  Author: Chad Kerner, Senior Storage Engineer
+#          Storage Enabling Technologies
+#          National Center for Supercomputing Applications
+#  E-Mail: ckerner@illinois.edu
+#-------------------------------------------------------------------------------
+# This utility uses the IBM Spectrum Scale policy analysis engine to pull
+# information about the specified file path.
+#===============================================================================
 use Data::Dumper;
 
 if( scalar(@ARGV) != 2 ) {
