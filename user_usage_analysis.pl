@@ -96,6 +96,7 @@ foreach $fset ( @fsets ) {
        print "   $fset -> $path\n";
    }
    $output = $path . '/USAGE_BY_USER';
+   open(OUTTMP, ">/tmp/u.tmp");
    open(OUTFIL, ">$output") || die("Unable to open: $output: $!\n");
    open(QUOTA, "/usr/lpp/mmfs/bin/mmrepquota -u -n --block-size 1g $gpfsdev:$fset |") || die("Unable to execute: /usr/lpp/mmfs/bin/mmrepquota -u --block-size 1g $gpfsdev:$fset : $!\n");
    printf OUTFIL "%-5s  %-10s  %-30s  %-9s  %15s\n", 'UID', 'Username', 'Full Name', 'Usage(GB)', '# Files';
@@ -112,9 +113,13 @@ foreach $fset ( @fsets ) {
       $usage = $ara[3];
       $files = $ara[9];
 
-      printf OUTFIL "%-5s  %-10s  %-30s  %9s  %15s\n", $uid, $uids{$uid}{USER}, substr($uids{$uid}{NAME},0,30), addcomma($usage), addcomma($files);
+      printf OUTTMP "%-5s  %-10s  %-30s  %9s  %15s\n", $uid, $uids{$uid}{USER}, substr($uids{$uid}{NAME},0,30), addcomma($usage), addcomma($files);
    }
    close(QUOTA);
    close(OUTFIL);
+   close(OUTTMP);
+
+   # Sort the output for whiners...
+   `cat /tmp/u.tmp | sort -t/ -k1.50,1.60 -n -r >> $output`;
 }
 
