@@ -82,7 +82,11 @@ sub print_by_gid {
        $hash{$ara[9]}{BYTES} = $hash{$ara[9]}{BYTES} + $ara[4];
     }
     close(INFIL);
-    print Dumper \%hash;
+
+    printf("%-5s   %-10s   %-15s\n", "GID", "# Files", "Total Bytes");
+    foreach $key (sort(keys(%hash))) {
+        printf("%-5s   %10s   %15s\n", $key, addcomma($hash{$key}{FILES}), addcomma($hash{$key}{BYTES}));
+    }
 }
 
 sub print_by_uid {
@@ -94,7 +98,11 @@ sub print_by_uid {
        $hash{$ara[10]}{BYTES} = $hash{$ara[10]}{BYTES} + $ara[4];
     }
     close(INFIL);
-    print Dumper \%hash;
+
+    printf("%-5s   %-10s   %-15s\n", "UID", "# Files", "Total Bytes");
+    foreach $key (sort(keys(%hash))) {
+        printf("%-5s   %10s   %15s\n", $key, addcomma($hash{$key}{FILES}), addcomma($hash{$key}{BYTES}));
+    }
 }
 
 sub init_size_buckets {
@@ -226,5 +234,5 @@ EOPOLICY
    elsif( $type eq '-g' ) { print_by_gid(); }
    else                   { print_buckets( $type ); }
 
-   `rm -Rf $work_dir &>/dev/null`;
+   #`rm -Rf $work_dir &>/dev/null`;
 }
