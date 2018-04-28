@@ -215,6 +215,7 @@ RULE 'listall' list 'all-files'
          varchar( days(current_timestamp) - days(change_time) ) || ' ' ||
          varchar( days(current_timestamp) - days(modification_time) ) || ' ' ||
          varchar( days(current_timestamp) - days(access_time) ) || ' ' ||
+         varchar( nlink ) || ' ' ||
          varchar(group_id) || ' ' ||
          varchar(user_id) )
    WHERE PATH_NAME like '$analysis_path/%'
