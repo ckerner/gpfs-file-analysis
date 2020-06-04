@@ -20,6 +20,7 @@ if( scalar(@ARGV) != 2 ) {
     print "     -c      Breakdown by File Creation Days\n";
     print "     -m      Breakdown by File Modification Days\n";
     print "     -a      Breakdown by File Access Days\n";
+    print "     -ac     Breakdown by File Access Days, Output in CSV\n";
     print "     -u      Breakdown by UID\n";
     print "     -g      Breakdown by GID\n";
     print "\n";
@@ -31,7 +32,7 @@ else {
 }
 
 $PID=$$;;
-$work_dir = "/tmp/policy.$PID";
+$work_dir = "/chad/tmp/policy.$PID";
 $data_file = "$work_dir/list.all-files";
 
 $onek = 1024;
@@ -65,11 +66,18 @@ $title{-s} = 'Breakdown by File Size';
 $title{-a} = 'Breakdown by File Access Date';
 $title{-m} = 'Breakdown by File Modification Date';
 $title{-c} = 'Breakdown by File Creation Date';
+$title{-ac} = 'Breakdown_by_File_Access_Date,#_Files,#_Bytes';
 
 sub addcomma {
     $_ = $_[0];
     if( $_ == 0 ) { return '0'; }
     1 while s/(.*\d)(\d\d\d)/$1,$2/;
+    return $_;
+}
+
+sub zeropad {
+    $_ = $_[0];
+    if( $_ == 0 ) { return '0'; }
     return $_;
 }
 
@@ -145,17 +153,37 @@ sub init_date_buckets {
     $max_buckets = $bidx - 1;
 }
 
+sub init_csv_date_buckets {
+    $bidx = 0;
+    $bucket[$bidx] = 0;            $header[$bidx] = 'Today';             $bidx++;
+    $bucket[$bidx] = 7;            $header[$bidx] = '1-7_Days';          $bidx++;
+    $bucket[$bidx] = 30;           $header[$bidx] = '7-30_Days';         $bidx++;
+    $bucket[$bidx] = 60;           $header[$bidx] = '30-60_Days';        $bidx++;
+    $bucket[$bidx] = 90;           $header[$bidx] = '60-90_Days';        $bidx++;
+    $bucket[$bidx] = 120;          $header[$bidx] = '90-120_Days';       $bidx++;
+    $bucket[$bidx] = 180;          $header[$bidx] = '120-180_Days';      $bidx++;
+    $bucket[$bidx] = 365;          $header[$bidx] = '180_Days-1_Year';   $bidx++;
+    $bucket[$bidx] = 730;          $header[$bidx] = '1-2_Years';         $bidx++;
+    $bucket[$bidx] = 1095;         $header[$bidx] = '2-3_Years';         $bidx++;
+    $bucket[$bidx] = 1460;         $header[$bidx] = '3-4_Years';         $bidx++;
+    $bucket[$bidx] = 1825;         $header[$bidx] = '4-5_Years';         $bidx++;
+    $header[$bidx] = '5+_Years';
+    $max_buckets = $bidx - 1;
+}
+
 
 sub print_buckets {
     my $type = $_[0];
 
-    if( $type eq '-a' )    { $cutoff = 8; }
-    elsif( $type eq '-s' ) { $cutoff = 4; } 
-    elsif( $type eq '-c' ) { $cutoff = 5; } 
-    elsif( $type eq '-m' ) { $cutoff = 6; } 
+    if( $type eq '-a' )      { $cutoff = 8; }
+    elsif( $type eq '-ac' )  { $cutoff = 8; } 
+    elsif( $type eq '-s' )   { $cutoff = 4; } 
+    elsif( $type eq '-c' )   { $cutoff = 5; } 
+    elsif( $type eq '-m' )   { $cutoff = 6; } 
 
-    if( $type eq '-s' ) { init_size_buckets(); }
-    else                { init_date_buckets(); }
+    if( $type eq '-s' )      { init_size_buckets(); }
+    elsif( $type eq '-ac' )  { init_csv_date_buckets(); }
+    else                     { init_date_buckets(); }
 
     open(INFIL,"$data_file") || die("Unable to open file: $data_file $!\n");
     RECORD: while(<INFIL>) {
@@ -182,21 +210,37 @@ sub print_buckets {
     }
     close(INFIL);
 
-    printf("%8s %s\n\n", '', $title{$type});
-    if( $type eq '-s' ) {
-        printf("%17s \t","Bucket Size");
-        printf("%10s \t","# of Files");
-        printf("%20s \n","# of Bytes");
+    if( $type eq '-ac' ) {
+        printf("%s\n", $title{$type});
     }
     else {
-        printf("%17s \t","Bucket Days");
-        printf("%10s \t","# of Files");
-        printf("%20s \n","# of Bytes");
+       printf("%8s %s\n\n", '', $title{$type});
+     
+       if( $type eq '-s' ) {
+           printf("%17s \t","Bucket Size");
+           printf("%10s \t","# of Files");
+           printf("%20s \n","# of Bytes");
+       }
+       else {
+           printf("%17s \t","Bucket Days");
+           printf("%10s \t","# of Files");
+           printf("%20s \n","# of Bytes");
+       }
     }
-    for( $idx=0; $idx <= $max_buckets+1; $idx++ ) {
-        printf("%17s \t",$header[$idx]);
-        printf("%10s \t",addcomma($files[$idx]));
-        printf("%20s \n",addcomma($bytes[$idx]));
+
+    if( $type eq '-ac' ) {
+       for( $idx=0; $idx <= $max_buckets+1; $idx++ ) {
+           printf("%s,",$header[$idx]);
+           printf("%s,",zeropad($files[$idx]));
+           printf("%s\n",zeropad($bytes[$idx]));
+       }
+    }
+    else {
+       for( $idx=0; $idx <= $max_buckets+1; $idx++ ) {
+           printf("%17s \t",$header[$idx]);
+           printf("%10s \t",addcomma($files[$idx]));
+           printf("%20s \n",addcomma($bytes[$idx]));
+       }
     }
 }
 
@@ -229,7 +273,7 @@ EOPOLICY
 {
    setup_work_area();
 
-   `/usr/lpp/mmfs/bin/mmapplypolicy $analysis_path -f $work_dir -P $policy_file -I defer &>$log_file 2>&1`;
+   `/usr/lpp/mmfs/bin/mmapplypolicy $analysis_path -f $work_dir -g $work_dir -N coreio -P $policy_file -I defer &>$log_file 2>&1`;
 
    if( $type eq '-u' )    { print_by_uid(); }
    elsif( $type eq '-g' ) { print_by_gid(); }
