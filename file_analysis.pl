@@ -25,8 +25,9 @@ if( scalar(@ARGV) != 2 ) {
     print "     -g      Breakdown by GID\n";
     print "\n";
     print "  Please Note:\n";
-    print "    You will need to modify the \$work_dir variable to match your system.\n";
-    print "    You will need to modify the \$node_class variable to match your system.\n";
+    print "    You will need to modify the \$work_dir variable to match your system.\n\n";
+    print "    You will need to modify the \$node_class variable to match your system.  If\n";
+    print "    you want to use the default, you can set the value to ''.\n";
     print "\n";
     exit 1;
 }
@@ -36,7 +37,7 @@ else {
 }
 
 $PID=$$;
-$node_class = 'coreio';
+$node_class = '-N coreio';
 $work_dir = "/chad/tmp/policy.$PID";
 $data_file = "$work_dir/list.all-files";
 
@@ -278,7 +279,7 @@ EOPOLICY
 {
    setup_work_area();
 
-   `/usr/lpp/mmfs/bin/mmapplypolicy $analysis_path -f $work_dir -g $work_dir -N $node_class -P $policy_file -I defer &>$log_file 2>&1`;
+   `/usr/lpp/mmfs/bin/mmapplypolicy $analysis_path -f $work_dir -g $work_dir $node_class -P $policy_file -I defer &>$log_file 2>&1`;
 
    if( $type eq '-u' )    { print_by_uid(); }
    elsif( $type eq '-g' ) { print_by_gid(); }
