@@ -1,6 +1,11 @@
 
 This utility will perform some basic file analysis on a given tree of a GPFS file system.
 
+You will need to modify the file_analysis.pl script to match your system. Here are the changes:
+- $node_class will need to be modified to fit your system. We use a node class called 'coreio' which
+  contains all of the NSD servers.
+- $work_dir needs to be modified as well. It needs to point to a work directory within a shared file system. 
+
 Usage: file_analysis.pl <Analysis Type> <Path To Analyze>
 
 You can specify what type of analysis:
